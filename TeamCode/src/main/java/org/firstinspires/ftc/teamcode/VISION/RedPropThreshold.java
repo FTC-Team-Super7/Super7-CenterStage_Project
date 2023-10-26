@@ -82,9 +82,9 @@ public class RedPropThreshold implements VisionProcessor {
             outStr = "right";
         }
 
-        finalMat.copyTo(frame); /*This line should only be added in when you want to see your custom pipeline
-                                  on the driver station stream, do not use this permanently in your code as
-                                  you use the "frame" mat for all of your pipelines, such as April Tag Pipelines.*/
+        //finalMat.copyTo(frame); /*This line should only be added in when you want to see your custom pipeline
+                                  //on the driver station stream, do not use this permanently in your code as
+                                 // you use the "frame" mat for all of your pipelines, such as April Tag Pipelines.
         return null;
 
 
