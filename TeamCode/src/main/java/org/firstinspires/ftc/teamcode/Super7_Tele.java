@@ -24,6 +24,7 @@ public class Super7_Tele extends Base{
         boolean slidesHighCurr = false, slidesHighLast = false;
         boolean slidesMidCurr = false, slidesMidLast = false;
         boolean slidesLowCurr = false, slidesLowLast = false;
+        boolean slidesRestCurr = false, slidesRestLast = false;
 
 
 
@@ -64,7 +65,7 @@ public class Super7_Tele extends Base{
             }
 
             launchLast = launchCurr;
-            launchCurr = gamepad1.a;
+            launchCurr = gamepad1.options;  //Hard to hit button - Only One Launch!
             if(launchCurr && !launchLast){
                 launcher.setPosition(0.5);
             }
@@ -76,15 +77,21 @@ public class Super7_Tele extends Base{
             }
 
             slidesLowLast = slidesLowCurr;
-            slidesLowCurr = gamepad2.y;
+            slidesLowCurr = gamepad2.x;
             if(slidesLowCurr && !slidesLowLast){
                 state = "low";
             }
 
             slidesMidLast = slidesMidCurr;
-            slidesMidCurr = gamepad2.y;
+            slidesMidCurr = gamepad2.b;
             if(slidesMidCurr && !slidesMidLast){
                 state = "mid";
+            }
+
+            slidesRestLast = slidesRestCurr;
+            slidesRestCurr = gamepad2.a;
+            if(slidesRestCurr && !slidesRestLast){
+                state = "rest";
             }
 
 

@@ -29,6 +29,10 @@ public abstract class Base extends LinearOpMode {
 
     public DcMotor slideLeft;
 
+    public DcMotor hanger;
+
+    public Servo launcher;
+
     public double p=0, i=0, d=0, f=0;
 
     public PIDController slidePid = new PIDController(0, 0, 0);
@@ -46,14 +50,18 @@ public abstract class Base extends LinearOpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-        /*fLeftMotor = hardwareMap.get(DcMotor.class, "fLeft");
+        //Motors
+        fLeftMotor = hardwareMap.get(DcMotor.class, "fLeft");
         bLeftMotor = hardwareMap.get(DcMotor.class, "fLeft");
         bRightMotor = hardwareMap.get(DcMotor.class, "fLeft");
         fRightMotor = hardwareMap.get(DcMotor.class, "fLeft");
 
         sweeper = hardwareMap.get(DcMotor.class, "sweeper");
-        slideRight = hardwareMap.get(DcMotor.class, "right_slide");
-        slideLeft = hardwareMap.get(DcMotor.class, "left_slide");*/
+        hanger = hardwareMap.get(DcMotor.class, "hanger");
+
+        //Servos
+        launcher = hardwareMap.get(Servo.class, "launch");
+
 
 
 
@@ -64,6 +72,8 @@ public abstract class Base extends LinearOpMode {
                         RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
                 )
                 ));
+
+
 
 
     }
