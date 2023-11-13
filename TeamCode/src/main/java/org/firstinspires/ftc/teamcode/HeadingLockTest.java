@@ -4,8 +4,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="TeleOp")
-public class Super7_Tele extends Base{
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+
+@TeleOp
+public class HeadingLockTest extends Base{
+
     boolean headLast = false, headCurr = false;
     boolean lockOn = false;
     double headingCoeff;
@@ -13,6 +16,7 @@ public class Super7_Tele extends Base{
     @Override
     public void runOpMode() throws InterruptedException {
         initHardware();
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         resetYaw();
         Servo launcher = hardwareMap.get(Servo.class, "launch");
         launcher.setPosition(0);
@@ -32,6 +36,7 @@ public class Super7_Tele extends Base{
             double y = gamepad1.left_stick_y * -1;
             double x = gamepad1.left_stick_x;
             double turn = gamepad1.right_stick_x;
+
 
 
             headLast = headCurr;
@@ -95,7 +100,7 @@ public class Super7_Tele extends Base{
             }
 
 
-            updateArmPos();
+
 
 
             telemetry.addData("Angle: ", getAngle());
