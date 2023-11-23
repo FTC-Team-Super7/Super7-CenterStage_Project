@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -15,6 +16,7 @@ public class T1_Teleop extends Base {
     public void runOpMode() throws InterruptedException {
         initHardware();
         resetCache();
+
         //Button Variables
         boolean launcherLast = false, launcherCurr = false;
         boolean launched = false;
@@ -22,20 +24,29 @@ public class T1_Teleop extends Base {
         boolean up = true;
         boolean dropLast = false, dropCurr = false;
         boolean upLast = false, upCurr = false;
+        boolean incLast = false, incCurr = false;
+        boolean decLast = false, decCurr = false;
+        double drivePow = 0.7;
+
+        boolean shutOff = false;
+        //arm.resetEncoder(true);
         waitForStart();
 
         while(opModeIsActive()){
+
+
             resetCache();
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
-            double strafe = gamepad1.right_stick_x * 1.1; // Counteract imperfect strafing
+            double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
             double turn = gamepad1.left_stick_x;
-            int armPos = arm.encoderReading();
+            //int armPos = arm.encoderReading();
 
 
 
 
 
-            driveFieldCentric(drive, strafe, turn, 0.7);
+            driveFieldCentric(drive, strafe, turn, drivePow);
+
             //driveRobotCentric(drive, strafe, turn, 0.7);
 
             if(gamepad1.dpad_up){
@@ -45,6 +56,20 @@ public class T1_Teleop extends Base {
             }else{
                 hanger.setPower(0);
             }
+
+            incLast = incCurr;
+            incCurr = gamepad2.dpad_right;
+            if(incCurr && !incLast){
+                drivePow += 0.1;
+            }
+
+            decLast = decCurr;
+            decCurr = gamepad2.dpad_left;
+            if(decCurr && !decLast){
+                drivePow -= 0.1;
+            }
+
+
 
             launcherLast = launcherCurr;
             launcherCurr = gamepad2.a;
@@ -86,16 +111,16 @@ public class T1_Teleop extends Base {
 
 
 
-            /*if(gamepad1.dpad_left){
+            if(gamepad1.dpad_left){
                 pivot.setPosition(pivot.getPosition() - 0.02);
             }else if(gamepad1.dpad_right){
                 pivot.setPosition(pivot.getPosition() + 0.02);
-            }*/
+            }
 
             if(gamepad2.dpad_up){
-                arm.setPower(-0.08);
+                arm.setPower(-0.15);
             }else if(gamepad2.dpad_down){
-                arm.setPower(0.08);
+                arm.setPower(0.15);
             }else{
                 arm.setPower(0);
             }
@@ -113,8 +138,12 @@ public class T1_Teleop extends Base {
 
 
             telemetry.addData("Angle", getAngle());
-            telemetry.addData("Arm", armPos);
-           // telemetry.addData("Encoder", bLeftMotor.encoderReading());
+
+            telemetry.addData("Encoder", bLeftMotor.encoderReading());
+            telemetry.addData("Encoder", fLeftMotor.encoderReading());
+            telemetry.addData("Encoder", bRightMotor.encoderReading());
+            telemetry.addData("Encoder", fRightMotor.encoderReading());
+            telemetry.addData("Drive Power", drivePow);
             telemetry.update();
 
         }

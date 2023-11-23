@@ -8,6 +8,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -30,9 +31,11 @@ public abstract class Base extends LinearOpMode {
     Servo pivot;
     public IMU imu;
 
+
+
     public double BOX_INIT_POS = 0.4, BOX_INTAKE_POS = 0.65, BOX_RETRACT_POS = 0.5, BOX_MID_POS = 0.45;
     public double LAUNCHER_INIT_POS = 0, LAUNCHER_SHOOT_POS = 0.5;
-    SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
 
 
 
@@ -55,16 +58,17 @@ public abstract class Base extends LinearOpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
+
         //Motors
-         fLeftMotor = new Motor(hardwareMap, "bLeft", false);
-         bLeftMotor = new Motor(hardwareMap, "fLeft", false);
+         fLeftMotor = new Motor(hardwareMap, "fLeft", false);
+         bLeftMotor = new Motor(hardwareMap, "bLeft", false);
          bRightMotor = new Motor(hardwareMap, "bRight", false);
          fRightMotor = new Motor(hardwareMap, "fRight", false);
          hanger = new Motor(hardwareMap, "hanger", false);
          arm = new Motor(hardwareMap, "arm", true);
 
          bRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-         bLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+         fRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
          //Servos
          launcher = hardwareMap.get(Servo.class, "launcher");
@@ -88,6 +92,8 @@ public abstract class Base extends LinearOpMode {
                         RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
                 )
                 ));
+        resetYaw();
+
 
     }
 
@@ -105,7 +111,7 @@ public abstract class Base extends LinearOpMode {
         double denominator = Math.max(Math.abs(rotVectorY) + Math.abs(rotVectorX) + Math.abs(turn), 1);
         double frontLeftPower = (rotVectorY + rotVectorX + turn) / denominator;
         double backLeftPower = (rotVectorY - rotVectorX + turn) / denominator;
-        double frontRightPower = (rotVectorY - rotVectorY - turn) / denominator;
+        double frontRightPower = (rotVectorY - rotVectorX - turn) / denominator;
         double backRightPower = (rotVectorY + rotVectorX - turn) / denominator;
 
         fLeftMotor.setPower(frontLeftPower * speedCap);
@@ -132,7 +138,7 @@ public abstract class Base extends LinearOpMode {
 
 
 
-
+    //Clears Bulk Read Cache
     public void resetCache(){
         for(LynxModule hub : allHubs){
             hub.clearBulkCache();
