@@ -10,11 +10,27 @@ public class ServoTesting extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Servo launcher = hardwareMap.get(Servo.class, "launcher");
-        launcher.setPosition(0);
+        boolean currIncre = false, lastIncre = false;
+        boolean currDecre = false, lastDecre = false;
+        Servo launcher = hardwareMap.get(Servo.class, "rightClaw");
+        launcher.setPosition(0.2);
         waitForStart();
         while(opModeIsActive()){
-            launcher.setPosition(0.5);
+            lastIncre = currIncre;
+            currIncre = gamepad1.dpad_up;
+            if(currIncre && !lastIncre){
+                launcher.setPosition(launcher.getPosition() + 0.05);
+            }
+
+            lastDecre = currDecre;
+            currDecre = gamepad1.dpad_down;
+            if(currDecre && !lastDecre){
+                launcher.setPosition(launcher.getPosition() - 0.05);
+            }
+
+            telemetry.addData("Servo Pos: ", launcher.getPosition());
+            telemetry.update();
+
         }
     }
 }

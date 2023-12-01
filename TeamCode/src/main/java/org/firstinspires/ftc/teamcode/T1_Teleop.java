@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
 public class T1_Teleop extends Base {
@@ -26,9 +27,14 @@ public class T1_Teleop extends Base {
         boolean upLast = false, upCurr = false;
         boolean incLast = false, incCurr = false;
         boolean decLast = false, decCurr = false;
+        boolean currIncre = false, lastIncre = false;
+        boolean open = true;
+        boolean autoLock = true;
         double drivePow = 0.7;
 
+
         boolean shutOff = false;
+
         //arm.resetEncoder(true);
         waitForStart();
 
@@ -85,7 +91,7 @@ public class T1_Teleop extends Base {
 
             pivotLast = pivotCurr;
             pivotCurr = gamepad1.a;
-            if(pivotCurr && !pivotLast){
+            if(pivotCurr && !pivotLast && !gamepad1.start){
                 up = !up;
                 if(up){
                     pivot.setPosition(BOX_MID_POS);
@@ -118,16 +124,38 @@ public class T1_Teleop extends Base {
             }
 
             if(gamepad2.dpad_up){
-                arm.setPower(-0.15);
+                arm.setPower(-0.65);
             }else if(gamepad2.dpad_down){
                 arm.setPower(0.15);
             }else{
                 arm.setPower(0);
             }
 
-            if(gamepad2.b){
+            if(gamepad2.b && !gamepad2.start){
                 pivot.setPosition(0.5);
             }
+
+            lastIncre = currIncre;
+            currIncre = gamepad1.y;
+            autoLock = !(currIncre && !lastIncre);
+            if(currIncre && !lastIncre){
+                open = !open;
+                if(open){
+                    leftClaw.setPosition(LEFT_CLAW_OPEN);
+                    rightClaw.setPosition(RIGHT_CLAW_OPEN);
+                }else{
+                    leftClaw.setPosition(LEFT_CLAW_CLOSE);
+                    rightClaw.setPosition(RIGHT_CLAW_CLOSE);
+                }
+            }
+
+            if(sensePixel() && autoLock){ //Automatic Pickup of Pixel
+                autoGrab();
+            }
+
+
+
+
 
 
 
@@ -138,12 +166,11 @@ public class T1_Teleop extends Base {
 
 
             telemetry.addData("Angle", getAngle());
+            telemetry.addData("Arm", arm.encoderReading());
 
-            telemetry.addData("Encoder", bLeftMotor.encoderReading());
-            telemetry.addData("Encoder", fLeftMotor.encoderReading());
-            telemetry.addData("Encoder", bRightMotor.encoderReading());
-            telemetry.addData("Encoder", fRightMotor.encoderReading());
             telemetry.addData("Drive Power", drivePow);
+            telemetry.addData("Pivot Pos", pivot.getPosition());
+            telemetry.addData("Distance", distance_sensor.getDistance(DistanceUnit.CM));
             telemetry.update();
 
         }
