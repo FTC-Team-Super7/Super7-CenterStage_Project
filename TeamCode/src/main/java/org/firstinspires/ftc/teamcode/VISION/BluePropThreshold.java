@@ -20,21 +20,21 @@ import java.util.Scanner;
 
 public class BluePropThreshold implements VisionProcessor {
     Mat testMat = new Mat();
-    Mat highMat = new Mat();
-    Mat lowMat = new Mat();
+
     Mat finalMat = new Mat();
     double redThreshold = 0.5;
+    double leftBox = 0, rightBox = 0;
 
     String outStr = "left"; //Set a default value in case vision does not work
 
     static final Rect LEFT_RECTANGLE = new Rect(
-            new Point(0, 0),
-            new Point(0, 0)
+            new Point(128, 274),
+            new Point(174, 291)
     );
 
     static final Rect RIGHT_RECTANGLE = new Rect(
-            new Point(0, 0),
-            new Point(0, 0)
+            new Point(474, 248),
+            new Point(510, 260)
     );
 
     @Override
@@ -53,21 +53,20 @@ public class BluePropThreshold implements VisionProcessor {
         Scalar redHSVRedLower = new Scalar(160, 100, 20); //Wraps around Color Wheel
         Scalar highHSVRedUpper = new Scalar(180, 255, 255);
 
-        Scalar lowBlue = new Scalar(241, 100, 255);
-        Scalar highBlue = new Scalar(300, 255, 255);
+        Scalar lowBlue = new Scalar(100, 100, 20);
+        Scalar highBlue = new Scalar(140, 255, 255);
 
 
 
 
 
-        Core.inRange(testMat, lowBlue, highBlue, lowMat);
+        Core.inRange(testMat, lowBlue, highBlue, finalMat);
 
         testMat.release();
 
 
 
-        lowMat.release();
-        highMat.release();
+
 
         double leftBox = Core.sumElems(finalMat.submat(LEFT_RECTANGLE)).val[0];
         double rightBox = Core.sumElems(finalMat.submat(RIGHT_RECTANGLE)).val[0];
@@ -85,8 +84,10 @@ public class BluePropThreshold implements VisionProcessor {
         }else{
             outStr = "right";
         }
+        rightBox = averagedRightBox;
+        leftBox = averagedLeftBox;
 
-        frame.copyTo(frame); //This line should only be added in when you want to see your custom pipeline
+        finalMat.copyTo(frame); //This line should only be added in when you want to see your custom pipeline
         //on the driver station stream, do not use this permanently in your code as
         // you use the "frame" mat for all of your pipelines, such as April Tag Pipelines.
         return null;
@@ -104,6 +105,10 @@ public class BluePropThreshold implements VisionProcessor {
 
     public String getPropPosition(){  //Added In
         return outStr;
+    }
+
+    public double[] getBoxVals(){
+        return new double[]{rightBox, leftBox};
     }
 }
 

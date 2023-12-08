@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.VISION.BluePropThreshold;
+import org.firstinspires.ftc.teamcode.VISION.BluePropThresholdAudience;
 import org.firstinspires.ftc.teamcode.VISION.RedPropThreshold;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -20,7 +22,9 @@ public class VisionTest extends LinearOpMode {
     private VisionPortal portal;
     @Override
     public void runOpMode() throws InterruptedException {
-        RedPropThreshold redPropThreshold = new RedPropThreshold();
+
+        BluePropThresholdAudience redPropThreshold = new BluePropThresholdAudience();
+
 
 
 
@@ -32,10 +36,13 @@ public class VisionTest extends LinearOpMode {
                 .addProcessor(redPropThreshold)
                 .build();
         waitForStart();
+        String position = redPropThreshold.getPropPosition();
 
         while(opModeIsActive()){
 
-            telemetry.addData("Outstr", redPropThreshold.getPropPosition());
+            telemetry.addData("Outstr", position);
+            telemetry.addData("Left Box: ", redPropThreshold.getBoxVals()[1] );
+            telemetry.addData("Right Box: ", redPropThreshold.getBoxVals()[0]);
             telemetry.update();
 
         }

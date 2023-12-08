@@ -4,20 +4,14 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
 @Config
 @TeleOp
-public class ARM_PIDF extends Base{
+
+public class Super_7_Teleop extends Base{
     private PIDController controller;
 
     public static double p =0.02, i=0, d=0.001;
@@ -59,7 +53,7 @@ public class ARM_PIDF extends Base{
         ElapsedTime autoShutOff = new ElapsedTime();
         ElapsedTime pickUp = new ElapsedTime();
 
-        pivot.setPosition(0.8);
+        pivot.setPosition(0.65);   //0.85
         waitForStart();
         while(opModeIsActive()){
 
@@ -95,7 +89,7 @@ public class ARM_PIDF extends Base{
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
             double turn = gamepad1.left_stick_x;
-            driveFieldCentric(drive, strafe, turn, 0.7);
+            driveFieldCentric(drive, strafe, turn, 0.9);
             //int armPos = arm.encoderReading();
 
             if(gamepad1.dpad_up){
@@ -106,25 +100,23 @@ public class ARM_PIDF extends Base{
                 hanger.setPower(0);
             }
 
-            launcherLast = launcherCurr;
-            launcherCurr = gamepad2.a;
-            if(launcherCurr && !launcherLast){
-                launched = !launched;
-                if(launched){
-                    launcher.setPosition(LAUNCHER_SHOOT_POS);
-                }else{
-                    launcher.setPosition(LAUNCHER_INIT_POS);
-                }
+            if(gamepad2.dpad_up){
+                launcher.setPower(-0.4);
+            }else if(gamepad2.dpad_down){
+                launcher.setPower(0.4);
+            }else{
+                launcher.setPower(0);
             }
+
 
             pivotLast = pivotCurr;
             pivotCurr = gamepad1.a;
             if(pivotCurr && !pivotLast && !gamepad1.start){
                 up = !up;
                 if(up){
-                    pivot.setPosition(0.8);
-                }else{
                     pivot.setPosition(0.65);
+                }else{
+                    pivot.setPosition(0.45);
                 }
             }
 
@@ -148,9 +140,9 @@ public class ARM_PIDF extends Base{
             if(clawAlignCurr && !clawAlignLast){
                 clawDown = !clawDown;
                 if(clawDown){
-                    pivot.setPosition(0.98);
+                    pivot.setPosition(0.85);
                 }else{
-                    pivot.setPosition(0.8);
+                    pivot.setPosition(0.65);
                 }
             }
 

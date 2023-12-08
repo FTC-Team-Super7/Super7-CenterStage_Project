@@ -1,25 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.controller.PIDFController;
+
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServoImpl;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 import java.util.List;
-import java.util.Objects;
 
 public abstract class Base extends LinearOpMode {
     public List<LynxModule> allHubs;
@@ -28,13 +28,16 @@ public abstract class Base extends LinearOpMode {
     Motor bRightMotor;
     Motor fRightMotor;
     Motor hanger;
-    Motor arm;
-    Servo launcher;
+
+    public DcMotorEx arm;
+
+    CRServo launcher;
     Servo pivot;
     Servo leftClaw;
     Servo rightClaw;
 
-    DistanceSensor distance_sensor;
+    DistanceSensor distance_sensor_right;
+    DistanceSensor distance_sensor_left;
 
     public IMU imu;
 
@@ -43,7 +46,7 @@ public abstract class Base extends LinearOpMode {
     public double BOX_INIT_POS = 0.4, BOX_INTAKE_POS = 0.65, BOX_RETRACT_POS = 0.5, BOX_MID_POS = 0.45;
     public double LAUNCHER_INIT_POS = 0, LAUNCHER_SHOOT_POS = 0.5;
 
-    public double LEFT_CLAW_OPEN = 0, LEFT_CLAW_CLOSE = 0.28, RIGHT_CLAW_OPEN = 0.65, RIGHT_CLAW_CLOSE = 0.06;
+    public double LEFT_CLAW_OPEN = 0.48, LEFT_CLAW_CLOSE = 0.07, RIGHT_CLAW_OPEN = 0, RIGHT_CLAW_CLOSE = 0.8;
 
 
 
@@ -74,26 +77,33 @@ public abstract class Base extends LinearOpMode {
          bRightMotor = new Motor(hardwareMap, "bRight", false);
          fRightMotor = new Motor(hardwareMap, "fRight", false);
          hanger = new Motor(hardwareMap, "hanger", false);
-         arm = new Motor(hardwareMap, "arm", true);
+         arm = hardwareMap.get(DcMotorEx.class, "arm");
+
+
+
 
          bRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
          fRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+         arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
          //Servos
-         launcher = hardwareMap.get(Servo.class, "launcher");
+         launcher = hardwareMap.get(CRServo.class, "launcher");
          pivot = hardwareMap.get(Servo.class, "pivot");
          leftClaw = hardwareMap.get(Servo.class, "leftClaw");
          rightClaw = hardwareMap.get(Servo.class, "rightClaw");
 
+
          //Sensors
-        distance_sensor = hardwareMap.get(DistanceSensor.class, "distance");
+        distance_sensor_left = hardwareMap.get(DistanceSensor.class, "distance");
+        distance_sensor_right = hardwareMap.get(DistanceSensor.class, "distanceLeft");
 
 
         //Initalization Movements
-        launcher.setPosition(LAUNCHER_INIT_POS);
-        pivot.setPosition(0.6);
-        leftClaw.setPosition(LEFT_CLAW_OPEN);
-        rightClaw.setPosition(RIGHT_CLAW_OPEN);
+
+        pivot.setPosition(0.8);
+        leftClaw.setPosition(LEFT_CLAW_CLOSE);
+        rightClaw.setPosition(RIGHT_CLAW_CLOSE);
 
 
 
@@ -126,26 +136,26 @@ public abstract class Base extends LinearOpMode {
         bRightMotor = new Motor(hardwareMap, "bRight", true);
         fRightMotor = new Motor(hardwareMap, "fRight", true);
         hanger = new Motor(hardwareMap, "hanger", false);
-        arm = new Motor(hardwareMap, "arm", true);
+
 
         bRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         fRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Servos
-        launcher = hardwareMap.get(Servo.class, "launcher");
+        launcher = hardwareMap.get(CRServo.class, "launcher");
         pivot = hardwareMap.get(Servo.class, "pivot");
         leftClaw = hardwareMap.get(Servo.class, "leftClaw");
         rightClaw = hardwareMap.get(Servo.class, "rightClaw");
 
         //Sensors
-        distance_sensor = hardwareMap.get(DistanceSensor.class, "distance");
+        distance_sensor_right = hardwareMap.get(DistanceSensor.class, "distance");
 
 
         //Initalization Movements
-        launcher.setPosition(LAUNCHER_INIT_POS);
-        pivot.setPosition(0.6);
-        leftClaw.setPosition(LEFT_CLAW_OPEN);
-        rightClaw.setPosition(RIGHT_CLAW_OPEN);
+
+        pivot.setPosition(0.8);
+        leftClaw.setPosition(LEFT_CLAW_CLOSE);
+        rightClaw.setPosition(RIGHT_CLAW_CLOSE);
 
 
 
@@ -212,7 +222,7 @@ public abstract class Base extends LinearOpMode {
         double rotVectorX = strafe*Math.cos(-heading) - drive*Math.sin(-heading);
         double rotVectorY = drive*Math.cos(-heading) + strafe*Math.sin(-heading);
         double angleError = normalizeAngle(angle - getAngle());
-        double anglePow = 0.01 * angleError;
+        double anglePow = -0.01 * angleError;
 
         rotVectorX *= 1.1;
 
@@ -235,6 +245,22 @@ public abstract class Base extends LinearOpMode {
         bRightMotor.setPower(0);
     }
 
+    public void turnTo(double targetAngle, long timeout, double powerCap, double minDifference) {
+        // GM0
+        double currAngle = getAngle();
+        ElapsedTime time = new ElapsedTime();
+        while (Math.abs(currAngle - targetAngle) > minDifference
+                && time.milliseconds() < timeout
+                ) {
+            resetCache();
+            currAngle = getAngle();
+            double angleDiff = Angle.normalize(currAngle - targetAngle);
+            double calcP = Range.clip(angleDiff * 0.01, -powerCap, powerCap);
+            driveFieldCentric(0, 0, calcP, 1);
+        }
+
+        stopDrive();
+    }
     public double normalizeAngle(double rawAngle) {
         double scaledAngle = rawAngle % 360;
         if (scaledAngle < 0) {
@@ -268,12 +294,29 @@ public abstract class Base extends LinearOpMode {
     }
 
     //Teleop Functions
-    public void autoGrab(){
+    public void grabLeft(){
         leftClaw.setPosition(LEFT_CLAW_CLOSE);
     }
 
-    public boolean sensePixel(){
-        return distance_sensor.getDistance((DistanceUnit.CM)) < 10;
+    public void grabRight(){
+        rightClaw.setPosition(RIGHT_CLAW_CLOSE);
+    }
+
+    public boolean sensePixelLeft(){
+        return distance_sensor_right.getDistance((DistanceUnit.CM)) <= 7;
+    }
+
+    public boolean sensePixelRight(){
+        return distance_sensor_left.getDistance((DistanceUnit.CM)) <= 7;
+    }
+
+    //Auto Tools
+    public void preparePurpleDrop(){
+        pivot.setPosition(0.70);
+    }
+
+    public void dropPurplePixel(){
+        rightClaw.setPosition(RIGHT_CLAW_OPEN);
     }
 
 
