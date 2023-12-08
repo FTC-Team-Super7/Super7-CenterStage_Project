@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
-public class T1_Teleop extends Base {
+public class T2_Teleop extends Base {
 
     @Override
     public void runOpMode() throws InterruptedException {
