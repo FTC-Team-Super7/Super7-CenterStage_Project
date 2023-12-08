@@ -17,7 +17,7 @@ public class Super_7_Teleop extends Base{
     public static double p =0.02, i=0, d=0.001;
     public static double f = 0;
 
-    public static int target = 0;
+
 
     private final double ticks_in_degree = 5281 / 360;
 
@@ -29,6 +29,7 @@ public class Super_7_Teleop extends Base{
     @Override
     public void runOpMode() throws InterruptedException {
         initHardware();
+        int target = 0;
         resetCache();
         controller = new PIDController(0.02, 0, 0.001);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());

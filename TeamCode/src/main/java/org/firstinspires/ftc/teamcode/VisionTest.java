@@ -23,7 +23,7 @@ public class VisionTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        BluePropThresholdAudience redPropThreshold = new BluePropThresholdAudience();
+        BluePropThreshold redPropThreshold = new BluePropThreshold();
 
 
 

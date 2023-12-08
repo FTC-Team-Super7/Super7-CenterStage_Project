@@ -101,7 +101,7 @@ public abstract class Base extends LinearOpMode {
 
         //Initalization Movements
 
-        pivot.setPosition(0.8);
+        pivot.setPosition(0.65);
         leftClaw.setPosition(LEFT_CLAW_CLOSE);
         rightClaw.setPosition(RIGHT_CLAW_CLOSE);
 
@@ -312,7 +312,7 @@ public abstract class Base extends LinearOpMode {
 
     //Auto Tools
     public void preparePurpleDrop(){
-        pivot.setPosition(0.70);
+        pivot.setPosition(0.5);
     }
 
     public void dropPurplePixel(){
