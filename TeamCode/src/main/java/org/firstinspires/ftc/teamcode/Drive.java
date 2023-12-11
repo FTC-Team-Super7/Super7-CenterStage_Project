@@ -37,8 +37,8 @@ public class Drive extends Base {
             Motor fRightMotor,
             Motor bRightMotor,
             IMU imu,
-            OpMode m,
-            List<LynxModule> allHubs) {
+            OpMode m
+            ) {
 
         this.fLeftMotor = fLeftMotor;
         this.fRightMotor = fRightMotor;
@@ -46,7 +46,7 @@ public class Drive extends Base {
         this.bRightMotor = bRightMotor;
         this.gyro = imu;
         this.opMode = m;
-        this.allHubs = allHubs;
+
         driveTime.reset();
         xP = 0;
         yP = 0;
@@ -244,8 +244,8 @@ public class Drive extends Base {
         xV = nx; yV = nY;
 
         // integrate velocity over time
-        yP+=(yV*(driveTime.seconds()-prevTime))/162.15; // <-- Tick to inch conversion factor
-        xP+=(xV*(driveTime.seconds()-prevTime))/162.15;
+        yP+=(yV*(driveTime.seconds()-prevTime)); // <-- Tick to inch conversion factor
+        xP+=(xV*(driveTime.seconds()-prevTime));
         prevTime = driveTime.seconds();
     }
 
@@ -342,12 +342,7 @@ public class Drive extends Base {
     }
 
     // BULK-READING FUNCTIONS
-    public void resetCache() {
-        // Clears cache of all hubs
-        for (LynxModule hub : allHubs) {
-            hub.clearBulkCache();
-        }
-    }
+
 
     @Override
     public void runOpMode() throws InterruptedException {}

@@ -28,13 +28,13 @@ public class RedPropThreshold implements VisionProcessor {
     String outStr = "left"; //Set a default value in case vision does not work
 
     static final Rect LEFT_RECTANGLE = new Rect(
-            new Point(0, 0),
-            new Point(0, 0)
+            new Point(44, 257),
+            new Point(73, 266)
     );
 
     static final Rect RIGHT_RECTANGLE = new Rect(
-            new Point(0, 0),
-            new Point(0, 0)
+            new Point(363, 233),
+            new Point(390, 242)
     );
 
     @Override

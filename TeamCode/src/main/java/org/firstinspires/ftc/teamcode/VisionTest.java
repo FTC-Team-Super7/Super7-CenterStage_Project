@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Size;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -18,12 +19,13 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.Locale;
 
 @TeleOp(name="Cam Test")
+@Disabled
 public class VisionTest extends LinearOpMode {
     private VisionPortal portal;
     @Override
     public void runOpMode() throws InterruptedException {
 
-        BluePropThreshold redPropThreshold = new BluePropThreshold();
+        RedPropThreshold redPropThreshold = new RedPropThreshold();
 
 
 
@@ -36,13 +38,13 @@ public class VisionTest extends LinearOpMode {
                 .addProcessor(redPropThreshold)
                 .build();
         waitForStart();
-        String position = redPropThreshold.getPropPosition();
+
 
         while(opModeIsActive()){
+            String position = redPropThreshold.getPropPosition();
 
             telemetry.addData("Outstr", position);
-            telemetry.addData("Left Box: ", redPropThreshold.getBoxVals()[1] );
-            telemetry.addData("Right Box: ", redPropThreshold.getBoxVals()[0]);
+
             telemetry.update();
 
         }

@@ -38,6 +38,7 @@ public abstract class Base extends LinearOpMode {
 
     DistanceSensor distance_sensor_right;
     DistanceSensor distance_sensor_left;
+    DistanceSensor grabber_distance;
 
     public IMU imu;
 
@@ -97,11 +98,12 @@ public abstract class Base extends LinearOpMode {
          //Sensors
         distance_sensor_left = hardwareMap.get(DistanceSensor.class, "distance");
         distance_sensor_right = hardwareMap.get(DistanceSensor.class, "distanceLeft");
+        grabber_distance = hardwareMap.get(DistanceSensor.class, "grabber_distance");
 
 
         //Initalization Movements
 
-        pivot.setPosition(0.65);
+        pivot.setPosition(0.78);
         leftClaw.setPosition(LEFT_CLAW_CLOSE);
         rightClaw.setPosition(RIGHT_CLAW_CLOSE);
 
@@ -176,7 +178,33 @@ public abstract class Base extends LinearOpMode {
 
 
     //Drive Functions
-    public void driveFieldCentric(double drive, double strafe, double turn, double speedCap){
+    public void driveFieldCentric(double drive, double strafe, double turn, double speedCap, double initAng){
+
+
+        double heading = Math.toRadians(getAngle() + initAng);
+
+
+        double rotVectorX = strafe*Math.cos(-heading) - drive*Math.sin(-heading);
+        double rotVectorY = drive*Math.cos(-heading) + strafe*Math.sin(-heading);
+
+        rotVectorX *= 1.1;
+
+        double denominator = Math.max(Math.abs(rotVectorY) + Math.abs(rotVectorX) + Math.abs(turn), 1);
+        double frontLeftPower = (rotVectorY + rotVectorX + turn) / denominator;
+        double backLeftPower = (rotVectorY - rotVectorX + turn) / denominator;
+        double frontRightPower = (rotVectorY - rotVectorX - turn) / denominator;
+        double backRightPower = (rotVectorY + rotVectorX - turn) / denominator;
+
+        fLeftMotor.setPower(frontLeftPower * speedCap);
+        bLeftMotor.setPower(backLeftPower * speedCap);
+        fRightMotor.setPower(frontRightPower * speedCap);
+        bRightMotor.setPower(backRightPower * speedCap);
+
+
+
+    }
+
+    public void driveFieldCentricNormal(double drive, double strafe, double turn, double speedCap){
 
 
         double heading = Math.toRadians(getAngle());
@@ -256,7 +284,7 @@ public abstract class Base extends LinearOpMode {
             currAngle = getAngle();
             double angleDiff = Angle.normalize(currAngle - targetAngle);
             double calcP = Range.clip(angleDiff * 0.01, -powerCap, powerCap);
-            driveFieldCentric(0, 0, calcP, 1);
+            driveFieldCentricNormal(0, 0, calcP, 1);
         }
 
         stopDrive();

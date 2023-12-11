@@ -1,26 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
+
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-
 import com.arcrobotics.ftclib.controller.PIDController;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.modules.Intake;
-import org.firstinspires.ftc.teamcode.modules.Outtake;
 
 @Config
-@TeleOp(name="Red Tele")
+@TeleOp(name="Blue Tele")
 
-public class Super_7_Teleop extends Base{
-
+public class Blue_Tele extends Base{
     private PIDController controller;
-
 
     public static double p =0.02, i=0, d=0.001;
     public static double f = 0;
@@ -37,16 +33,8 @@ public class Super_7_Teleop extends Base{
     @Override
     public void runOpMode() throws InterruptedException {
         initHardware();
-
-        Intake intake = new Intake(pivot, leftClaw, rightClaw, distance_sensor_right, distance_sensor_left);
-        Outtake outtake = new Outtake(arm);
-        Drive dt = new Drive(fLeftMotor, fRightMotor, bLeftMotor, bRightMotor, imu, this);
-
         int target = 0;
         resetCache();
-
-
-
         controller = new PIDController(0.02, 0, 0.001);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -74,13 +62,12 @@ public class Super_7_Teleop extends Base{
         boolean test2 = true;
         String armState = "rest";
 
-        int armDepoPos = 2050;
+        int armDepoPos = 2100;
         int restPos = 95;
 
         double powerCap = 1;
 
         //Timers
-
         ElapsedTime autoShutOff = new ElapsedTime();
         ElapsedTime pickUp = new ElapsedTime();
 
@@ -89,7 +76,6 @@ public class Super_7_Teleop extends Base{
         while(opModeIsActive()){
 
             resetCache();
-            dt.updatePosition();
 
 
 
@@ -166,7 +152,7 @@ public class Super_7_Teleop extends Base{
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
             double turn = gamepad1.left_stick_x;
-            driveFieldCentric(drive, strafe, turn, powerCap, 90);
+            driveFieldCentric(drive, strafe, turn, powerCap, -90);
             //int armPos = arm.encoderReading();
 
             if(gamepad2.dpad_right){
@@ -235,7 +221,7 @@ public class Super_7_Teleop extends Base{
             if(clawAlignCurr && !clawAlignLast){
                 clawDown = !clawDown;
                 if(clawDown){
-                    pivot.setPosition(0.89);
+                    pivot.setPosition(0.85);
                 }else{
                     pivot.setPosition(0.65);
                 }
@@ -286,8 +272,6 @@ public class Super_7_Teleop extends Base{
 
             telemetry.addData("Pos", armPos);
             telemetry.addData("Target", target);
-            telemetry.addData("XPos", dt.xP);
-            telemetry.addData("YPos", dt.yP);
             telemetry.update();
         }
 
