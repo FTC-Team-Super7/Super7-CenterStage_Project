@@ -13,11 +13,11 @@ import org.firstinspires.ftc.teamcode.VISION.BluePropThreshold;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 @Autonomous(name="Blue Auto")
-public class T2_Auto extends Base {
+public class T2_Auto_Blue extends Base {
     int value = 0;
     @Override
     public void runOpMode() throws InterruptedException {
-        initHardware();
+        initHardware(this);
         resetCache();
         String result = "";
 

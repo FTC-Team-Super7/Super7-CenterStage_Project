@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -32,11 +33,17 @@ public class Blue_Tele extends Base{
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initHardware();
+        initHardware(this);
+        int highTarget = 2300;
+        int prevhighTarget = 2300;
+
+        int lowTarget = 50;
+        int prevLowTarget = 50;
         int target = 0;
         resetCache();
         controller = new PIDController(0.02, 0, 0.001);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        Drive dt = new Drive(fLeftMotor, bLeftMotor, fRightMotor, bRightMotor, imu, this);
 
 
 
@@ -76,78 +83,80 @@ public class Blue_Tele extends Base{
         while(opModeIsActive()){
 
             resetCache();
+            dt.updatePosition();
 
 
 
             switchTargetLast = switchTargetCurr;
-            switchTargetCurr = gamepad2.y;
+            switchTargetCurr = gamepad1.b;
             if(switchTargetCurr && !switchTargetLast){
                 down = !down;
                 if(down){
-                    target = restPos;
-                    armState = "down";
+                    arm.setTargetPosition(50);
+                    arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    arm.setPower(0.5);
+                    armState = "rest";
                 }else{
-                    target = armDepoPos;
+                    arm.setTargetPosition(highTarget);
+                    arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    arm.setPower(0.5);
                     armState = "up";
-                    oneSet = true;
                 }
             }
 
             incPosLast = incPosCurr;
-            incPosCurr = gamepad2.right_stick_button;
+            incPosCurr = gamepad1.dpad_up;
             if(incPosCurr && !incPosLast){
-                armDepoPos += 100;
-                target = armDepoPos;
+                highTarget += 100;
+
             }
 
             decPosLast = decPosCurr;
-            decPosCurr = gamepad2.left_stick_button;
+            decPosCurr = gamepad1.dpad_down;
             if(decPosCurr && !decPosLast){
-                armDepoPos -= 100;
-                target = armDepoPos;
+                highTarget -= 100;
             }
 
             incPosLastOne = incPosCurrOne;
-            incPosCurrOne = gamepad2.right_trigger > 0.05;
+            incPosCurrOne = gamepad1.dpad_right;
             if(incPosCurrOne && !incPosLastOne){
-                restPos += 100;
-                target = restPos;
+                lowTarget += 100;
             }
 
             decPosLastOne = decPosCurrOne;
-            decPosCurrOne = gamepad2.left_trigger > 0.05;
+            decPosCurrOne = gamepad1.dpad_left;
             if(decPosCurrOne && !decPosLastOne){
-                restPos -= 100;
-                target = restPos;
+                lowTarget -= 100;
+
             }
-
-            if(gamepad2.left_bumper){
-                target = 55;
-            }
-
-
-
-
-
-
-            controller.setPID(0.02, 0, 0.001);
-            int armPos = arm.getCurrentPosition();
-            double pid = controller.calculate(armPos, target);
-            //double ff = Math.cos(Math.toRadians(target/ticks_in_degree)) * f;
-
-            double power = pid;
-            double cappedPower = Range.clip(power, -1, 1);
-
-            arm.setPower(cappedPower * 0.6);
-
-
-
-
-            if(gamepad1.right_trigger > 0.05){
-                powerCap = 0.5;
-            }else {
-                powerCap = 1;
-            }
+//
+//            if(gamepad2.left_bumper){
+//                target = 55;
+//            }
+//
+//
+//
+//
+//
+//
+//            controller.setPID(0.02, 0, 0.001);
+//            int armPos = arm.getCurrentPosition();
+//            double pid = controller.calculate(armPos, target);
+//            //double ff = Math.cos(Math.toRadians(target/ticks_in_degree)) * f;
+//
+//            double power = pid;
+//            double cappedPower = Range.clip(power, -1, 1);
+//
+//            arm.setPower(cappedPower * 0.6);
+//
+//
+//
+//
+//            if(gamepad1.right_trigger > 0.05){
+//                powerCap = 0.5;
+//            }else {
+//                powerCap = 1;
+//            }
 
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
@@ -176,6 +185,7 @@ public class Blue_Tele extends Base{
                 pivot.setPosition(0.45);
                 test2 = true;
                 if(test){
+                    autoShutOff.reset();
                     leftClaw.setPosition(LEFT_CLAW_OPEN);
                     rightClaw.setPosition(RIGHT_CLAW_OPEN);
                     test = false;
@@ -217,17 +227,27 @@ public class Blue_Tele extends Base{
             }
 
             clawAlignLast = clawAlignCurr;
-            clawAlignCurr = gamepad2.b;
+            clawAlignCurr = gamepad1.right_bumper;
             if(clawAlignCurr && !clawAlignLast){
                 clawDown = !clawDown;
                 if(clawDown){
-                    pivot.setPosition(0.85);
+                    pivot.setPosition(0.25);
                 }else{
                     pivot.setPosition(0.65);
                 }
             }
 
-            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000){ //Automatic Pickup of Pixel
+            if(gamepad1.right_stick_button){
+                pivot.setPosition(pivot.getPosition() + 0.02);
+            }
+
+            if(gamepad1.left_stick_button){
+                pivot.setPosition(pivot.getPosition() - 0.02);
+            }
+
+
+
+            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){ //Automatic Pickup of Pixel
                 grabRight();
                 grabbedRight = true;
                 open = false;
@@ -236,7 +256,7 @@ public class Blue_Tele extends Base{
 
             }
 
-            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000){
+            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){
                 grabLeft();
                 grabbedLeft = true;
                 open = false;
@@ -260,6 +280,20 @@ public class Blue_Tele extends Base{
 
             }
 
+            if(highTarget != prevhighTarget){
+                arm.setTargetPosition(highTarget);
+                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm.setPower(0.5);
+            }
+
+            if(lowTarget != prevLowTarget){
+                arm.setTargetPosition(lowTarget);
+                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm.setPower(0.5);
+            }
+
+            prevhighTarget = highTarget;
+            prevLowTarget = lowTarget;
 
 
 
@@ -270,8 +304,21 @@ public class Blue_Tele extends Base{
 
 
 
-            telemetry.addData("Pos", armPos);
+
+
+
+
             telemetry.addData("Target", target);
+            telemetry.addData("X: ", dt.getX());
+            telemetry.addData("Y: ", dt.getY());
+            telemetry.addData("Angle: ", dt.getAngle());
+
+            telemetry.addData("FLEFT", fLeftMotor.retMotorEx().getVelocity());
+            telemetry.addData("FRIGHT", fRightMotor.retMotorEx().getVelocity());
+            telemetry.addData("BRIGHT", bRightMotor.retMotorEx().getVelocity());
+
+            telemetry.addData("BLEFT", bLeftMotor.retMotorEx().getVelocity());
+
             telemetry.update();
         }
 

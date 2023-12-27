@@ -4,13 +4,18 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.controller.PIDController;
 
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.Subsytems.ClawSubsystem;
 import org.firstinspires.ftc.teamcode.modules.Intake;
 import org.firstinspires.ftc.teamcode.modules.Outtake;
 
@@ -34,13 +39,18 @@ public class Super_7_Teleop extends Base{
 
 
 
+
+
     @Override
     public void runOpMode() throws InterruptedException {
-        initHardware();
+        initHardware(this);
+
 
         Intake intake = new Intake(pivot, leftClaw, rightClaw, distance_sensor_right, distance_sensor_left);
         Outtake outtake = new Outtake(arm);
         Drive dt = new Drive(fLeftMotor, fRightMotor, bLeftMotor, bRightMotor, imu, this);
+
+
 
         int target = 0;
         resetCache();
@@ -48,7 +58,10 @@ public class Super_7_Teleop extends Base{
 
 
         controller = new PIDController(0.02, 0, 0.001);
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry()); //FTC Dashboard Compatibility
+
+        GamepadEx driver1 = new GamepadEx(gamepad1);
+        GamepadEx driver2 = new GamepadEx(gamepad2); //Map gamepads into FTCLIB interface
 
 
 
@@ -72,7 +85,12 @@ public class Super_7_Teleop extends Base{
         boolean oneSet = true;
         boolean test = true;
         boolean test2 = true;
+        double lockedHeading = 0;
+        boolean headingLock = false;
+        boolean locked = false;
+        boolean headLast = false, headCurr = false;
         String armState = "rest";
+
 
         int armDepoPos = 2050;
         int restPos = 95;
@@ -84,7 +102,7 @@ public class Super_7_Teleop extends Base{
         ElapsedTime autoShutOff = new ElapsedTime();
         ElapsedTime pickUp = new ElapsedTime();
 
-        pivot.setPosition(0.65);   //0.85
+        pivot.setPosition(0.65);   //0.85;
         waitForStart();
         while(opModeIsActive()){
 
@@ -93,9 +111,11 @@ public class Super_7_Teleop extends Base{
 
 
 
+
+
             switchTargetLast = switchTargetCurr;
             switchTargetCurr = gamepad2.y;
-            if(switchTargetCurr && !switchTargetLast){
+            if(pressed(driver2, GamepadKeys.Button.Y)){
                 down = !down;
                 if(down){
                     target = restPos;
@@ -109,14 +129,14 @@ public class Super_7_Teleop extends Base{
 
             incPosLast = incPosCurr;
             incPosCurr = gamepad2.right_stick_button;
-            if(incPosCurr && !incPosLast){
+            if(driver2.wasJustPressed(GamepadKeys.Button.RIGHT_STICK_BUTTON)){
                 armDepoPos += 100;
                 target = armDepoPos;
             }
 
             decPosLast = decPosCurr;
             decPosCurr = gamepad2.left_stick_button;
-            if(decPosCurr && !decPosLast){
+            if(driver2.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)){
                 armDepoPos -= 100;
                 target = armDepoPos;
             }
@@ -135,7 +155,7 @@ public class Super_7_Teleop extends Base{
                 target = restPos;
             }
 
-            if(gamepad2.left_bumper){
+            if(driver2.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)){
                 target = 55;
             }
 
@@ -166,7 +186,25 @@ public class Super_7_Teleop extends Base{
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
             double turn = gamepad1.left_stick_x;
-            driveFieldCentric(drive, strafe, turn, powerCap, 90);
+
+            headLast = headCurr;
+            headCurr = gamepad1.b;
+            if(headCurr && !headLast){ //ofc add button vars here
+                headingLock = !headingLock;
+                if(headingLock && !locked){
+                    lockedHeading = getAngle();
+                    locked = true;
+                }else{
+                    locked = false;
+                }
+
+            }
+            if(Math.abs(turn) > 0.05){
+                driveFieldCentric(drive, strafe, turn, 0.7, 90);
+                lockedHeading = getAngle();
+            }else{
+                driveFieldCentricAuto(drive, strafe, lockedHeading, 1);
+            }
             //int armPos = arm.encoderReading();
 
             if(gamepad2.dpad_right){
@@ -218,7 +256,7 @@ public class Super_7_Teleop extends Base{
             lastIncre = currIncre;
             currIncre = gamepad1.y || gamepad2.x;
 
-            if(currIncre && !lastIncre){
+            if(pressed(driver1, GamepadKeys.Button.Y) || pressed(driver2, GamepadKeys.Button.X)){
                 open = !open;
                 if(open){
                     autoShutOff.reset();
@@ -232,7 +270,7 @@ public class Super_7_Teleop extends Base{
 
             clawAlignLast = clawAlignCurr;
             clawAlignCurr = gamepad2.b;
-            if(clawAlignCurr && !clawAlignLast){
+            if(driver2.wasJustPressed(GamepadKeys.Button.B)){
                 clawDown = !clawDown;
                 if(clawDown){
                     pivot.setPosition(0.89);
@@ -288,6 +326,7 @@ public class Super_7_Teleop extends Base{
             telemetry.addData("Target", target);
             telemetry.addData("XPos", dt.xP);
             telemetry.addData("YPos", dt.yP);
+
             telemetry.update();
         }
 

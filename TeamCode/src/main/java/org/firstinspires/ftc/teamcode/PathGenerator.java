@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+
+
 public class PathGenerator {
 
     // todo: replace prints in favor of logs.
@@ -196,6 +198,7 @@ public class PathGenerator {
                 pt.ang = p[i/4].ang;
                 pt.spline = p[i/4].spline;
                 pt.invertSpline = p[i/4].invertSpline;
+                pt.speed = p[i/4].speed;
                 path.add(pt);
             }
 
@@ -210,6 +213,8 @@ public class PathGenerator {
             pt.ang = p[(i / 4) + 1].ang;
             pt.spline = p[(i / 4) + 1].spline;
             pt.invertSpline = p[(i / 4) + 1].invertSpline;
+            pt.speed = p[(i / 4) + 1].speed;
+
             path.add(pt);
         }
 
@@ -275,3 +280,4 @@ public class PathGenerator {
         return mat;
     }
 }
+

@@ -17,7 +17,7 @@ public class HeadingLockTest extends Base{
     String state = "down";
     @Override
     public void runOpMode() throws InterruptedException {
-        initHardware();
+        initHardware(this);
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         resetYaw();
         Servo launcher = hardwareMap.get(Servo.class, "launch");

@@ -23,7 +23,7 @@ public class T2_Auto_Red extends Base {
     int value = 0;
     @Override
     public void runOpMode() throws InterruptedException {
-        initHardware();
+        initHardware(this);
         resetCache();
         String result = "";
 

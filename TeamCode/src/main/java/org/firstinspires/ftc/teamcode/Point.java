@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 public class Point implements Comparable<Point> {
-    public double xP, yP, ang;
+    public double xP, yP, ang, speed;
     public boolean invertSpline, spline;
 
     public Point(double xP, double yP, double ang) {
@@ -10,6 +10,16 @@ public class Point implements Comparable<Point> {
         this.ang = ang;
         invertSpline = false;
         spline = false;
+        speed = 1;
+    }
+
+    public Point(double xP, double yP, double ang, double speed) {
+        this.xP = xP;
+        this.yP = yP;
+        this.ang = ang;
+        invertSpline = false;
+        spline = false;
+        this.speed = speed;
     }
 
     public Point(double xP, double yP) {
@@ -17,13 +27,15 @@ public class Point implements Comparable<Point> {
         this.yP = yP;
         invertSpline = false;
         spline = false;
+        speed = 1;
     }
 
-    public Point(double xP, double yP, boolean spline, boolean invertSpline){
+    public Point(double xP, double yP, boolean spline, boolean invertSpline, double speed){
         this.xP = xP;
         this.yP = yP;
         this.spline = spline;
         this.invertSpline = invertSpline;
+        this.speed = speed;
     }
 
     public void setX(double xP) {
