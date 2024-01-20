@@ -101,6 +101,9 @@ public class Drive extends Base {
         return yP;
     }
 
+    public void setX(double x){xP = x;}
+
+    public void setY(double y){yP=y;}
     public Point getCurrentPosition() {
         return new Point(getX(), getY());
     }

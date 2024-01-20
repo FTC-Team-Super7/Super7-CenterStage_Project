@@ -233,13 +233,12 @@ public class PathGenerator {
         ArrayList<Point> wp = new ArrayList<>();
         for (int i = 0; i < pts.size() - 1; i++) {
             double x1 = pts.get(i).xP, x2 = pts.get(i + 1).xP, y1 = pts.get(i).yP, y2 = pts.get(i + 1).yP;
-
             double deltaX = (x2 - x1) / 10;
             double deltaY = (y2 - y1) / 10;
-            for (int j = 0; j < 100; j++) {
+            for (int j = 0; j <= 10; j++) {
                 double x = x1 + j * deltaX;
                 double y = y1 + j * deltaY;
-                wp.add(new Point(x, y, pts.get(i + 1).ang));
+                wp.add(new Point(x, y, pts.get(i).ang, pts.get(i).spline, pts.get(i).invertSpline,  pts.get(i).speed));
             }
         }
         return wp;

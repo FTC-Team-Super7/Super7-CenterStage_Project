@@ -37,7 +37,14 @@ public class Point implements Comparable<Point> {
         this.invertSpline = invertSpline;
         this.speed = speed;
     }
-
+    public Point(double xP, double yP, double angle, boolean spline, boolean invertSpline, double speed){
+        this.xP = xP;
+        this.yP = yP;
+        this.ang = angle;
+        this.spline = spline;
+        this.invertSpline = invertSpline;
+        this.speed = speed;
+    }
     public void setX(double xP) {
         this.xP = xP;
     }

@@ -34,8 +34,15 @@ public class Blue_Tele extends Base{
     @Override
     public void runOpMode() throws InterruptedException {
         initHardware(this);
-        int highTarget = 2300;
-        int prevhighTarget = 2300;
+        int highTarget = 2745;
+        int prevhighTarget = 2745;
+        int [] armHeights = {138, 3070, 2970, 2250};
+        double [] pivots = {0.55, 0.19, 0.21, 0.34};
+        //2745, 0.24
+        int row = 3;
+        int lastRow = 3;
+        ElapsedTime pivotTime = new ElapsedTime();
+        boolean movePivot = false;
 
         int lowTarget = 50;
         int prevLowTarget = 50;
@@ -63,10 +70,14 @@ public class Blue_Tele extends Base{
         boolean decPosLast = false, decPosCurr = false;
         boolean incPosLastOne = false, incPosCurrOne = false;
         boolean decPosLastOne = false, decPosCurrOne = false;
+        boolean moveDownLast = false, moveDownCurr = false;
+
         boolean clawDown = false;
         boolean oneSet = true;
         boolean test = true;
         boolean test2 = true;
+        boolean planeAngLast = false, planeAngCurr = false;
+        boolean angleToggle = false;
         String armState = "rest";
 
         int armDepoPos = 2100;
@@ -88,47 +99,99 @@ public class Blue_Tele extends Base{
 
 
             switchTargetLast = switchTargetCurr;
-            switchTargetCurr = gamepad1.b;
+            switchTargetCurr = gamepad2.y;
             if(switchTargetCurr && !switchTargetLast){
                 down = !down;
+
                 if(down){
-                    arm.setTargetPosition(50);
+                    arm.setTargetPosition(0);
+                    arm2.setTargetPosition(0);
+
                     arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    arm.setPower(0.5);
+                    arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    arm.setPower(0.8);
+                    arm2.setPower(0.8);
+                    pivot.setPosition(0.65);
                     armState = "rest";
                 }else{
-                    arm.setTargetPosition(highTarget);
+                    movePivot = true;
+                    pivotTime.reset();
+
+                    arm.setTargetPosition(armHeights[row]);
+                    arm2.setTargetPosition(armHeights[row]);
+
+
+
                     arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    arm.setPower(0.5);
+                    arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    arm.setPower(1);
+                    arm2.setPower(1);
                     armState = "up";
                 }
             }
+            //First Row: 3200 0.12, Second: 3070, 0.13, Third: 2970, 0.15
 
-            incPosLast = incPosCurr;
-            incPosCurr = gamepad1.dpad_up;
-            if(incPosCurr && !incPosLast){
-                highTarget += 100;
-
+            if(pivotTime.milliseconds() > 500 && movePivot){
+                pivot.setPosition(pivots[row]);
+                movePivot = false;
             }
 
-            decPosLast = decPosCurr;
-            decPosCurr = gamepad1.dpad_down;
-            if(decPosCurr && !decPosLast){
-                highTarget -= 100;
+            if(gamepad2.dpad_up ){
+                row = 0;
+            }
+            if(gamepad2.dpad_right ){
+                row = 1;
+            }if(gamepad2.dpad_down ){
+                row = 2;
+            }if(gamepad2.dpad_left){
+                row = 3;
             }
 
-            incPosLastOne = incPosCurrOne;
-            incPosCurrOne = gamepad1.dpad_right;
-            if(incPosCurrOne && !incPosLastOne){
-                lowTarget += 100;
+            if(gamepad2.left_bumper){
+                leftClaw.setPosition(LEFT_CLAW_OPEN);
             }
 
-            decPosLastOne = decPosCurrOne;
-            decPosCurrOne = gamepad1.dpad_left;
-            if(decPosCurrOne && !decPosLastOne){
-                lowTarget -= 100;
-
+            if(gamepad2.right_bumper){
+                rightClaw.setPosition(RIGHT_CLAW_OPEN);
             }
+
+            planeAngLast = planeAngCurr;
+            planeAngCurr = gamepad1.b;
+            if(planeAngCurr && !planeAngLast){
+                angleToggle = !angleToggle;
+                if(angleToggle){
+                    droneAngle.setPosition(0.3);
+                }else{
+                    droneAngle.setPosition(0.45);
+                }
+            }
+
+            moveDownLast = moveDownCurr;
+            moveDownCurr = gamepad2.a;
+            if(moveDownLast && !moveDownCurr){
+                arm.setTargetPosition(arm.getCurrentPosition() - 30);
+                arm2.setTargetPosition(arm.getCurrentPosition() - 30);
+
+                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                arm.setPower(0.5);
+                arm2.setPower(0.5);
+            }
+
+//            if(gamepad1.dpad_up){
+//                droneAngle.setPosition(droneAngle.getPosition() + 0.02);
+//            }if(gamepad1.dpad_down){
+//                droneAngle.setPosition(droneAngle.getPosition() - 0.02);
+//            }
+
+
+
+
+
+
+
 //
 //            if(gamepad2.left_bumper){
 //                target = 55;
@@ -164,25 +227,40 @@ public class Blue_Tele extends Base{
             driveFieldCentric(drive, strafe, turn, powerCap, -90);
             //int armPos = arm.encoderReading();
 
-            if(gamepad2.dpad_right){
+            if(gamepad2.right_trigger > 0.05){
                 hanger.setPower(-1);
-            }else if(gamepad2.dpad_left){
+            }else if(gamepad2.left_trigger > 0.05){
                 hanger.setPower(1);
             }else{
                 hanger.setPower(0);
             }
 
-            if(gamepad2.dpad_up){
-                launcher.setPower(-0.4);
-            }else if(gamepad2.dpad_down){
-                launcher.setPower(0.4);
+            if(gamepad1.dpad_up){
+                launcher.setPower(-1);
+            }else if(gamepad1.dpad_down){
+                launcher.setPower(1);
             }else{
                 launcher.setPower(0);
             }
 
+//            if(gamepad2.a){
+//                arm.setPower(1);
+//                arm2.setPower(1);
+//            }else if(gamepad2.b) {
+//                arm.setPower(-0.8);
+//                arm2.setPower(-0.8);
+//            }else{
+//
+//
+//                arm.setPower(0);
+//                arm2.setPower(0);
+//            }
+
+
+
 
             if(gamepad1.left_trigger > 0.05){
-                pivot.setPosition(0.45);
+                pivot.setPosition(0.55);
                 test2 = true;
                 if(test){
                     autoShutOff.reset();
@@ -237,40 +315,51 @@ public class Blue_Tele extends Base{
                 }
             }
 
-            if(gamepad1.right_stick_button){
+            if(gamepad1.a){
+                leftClaw.setPosition(LEFT_CLAW_CLOSE);
+                arm.setTargetPosition(400);
+                arm2.setTargetPosition(400);
+                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm.setPower(1);
+                arm2.setPower(1);
+                pivot.setPosition(0.1);
+            }
+
+            if(gamepad2.right_stick_button){
                 pivot.setPosition(pivot.getPosition() + 0.02);
             }
 
-            if(gamepad1.left_stick_button){
+            if(gamepad2.left_stick_button){
                 pivot.setPosition(pivot.getPosition() - 0.02);
             }
 
 
 
-            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){ //Automatic Pickup of Pixel
-                grabRight();
-                grabbedRight = true;
-                open = false;
-
-
-
-            }
-
-            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){
-                grabLeft();
-                grabbedLeft = true;
-                open = false;
-
-
-
-            }
+//            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){ //Automatic Pickup of Pixel
+//                grabRight();
+//                grabbedRight = true;
+//                open = false;
 //
-            autoPickLast = autoPickCurr;
-            autoPickCurr = leftClaw.getPosition() == LEFT_CLAW_CLOSE && rightClaw.getPosition() == RIGHT_CLAW_CLOSE;
-            if(autoPickCurr && !autoPickLast){
-                pickUp.reset();
-                transfer = true;
-            }
+//
+//
+//            }
+//
+//            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){
+//                grabLeft();
+//                grabbedLeft = true;
+//                open = false;
+//
+//
+//
+//            }
+////
+//            autoPickLast = autoPickCurr;
+//            autoPickCurr = leftClaw.getPosition() == LEFT_CLAW_CLOSE && rightClaw.getPosition() == RIGHT_CLAW_CLOSE;
+//            if(autoPickCurr && !autoPickLast){
+//                pickUp.reset();
+//                transfer = true;
+//            }
 
             if(pickUp.milliseconds() > 200 && transfer){
                 pivot.setPosition(0.65);
@@ -280,20 +369,21 @@ public class Blue_Tele extends Base{
 
             }
 
-            if(highTarget != prevhighTarget){
-                arm.setTargetPosition(highTarget);
+            if(armState.equals("up") && lastRow != row) {
+                arm.setTargetPosition(armHeights[row]);
+                arm2.setTargetPosition(armHeights[row]);
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 arm.setPower(0.5);
+                arm2.setPower(0.5);
+                pivot.setPosition(pivots[row]);
             }
 
-            if(lowTarget != prevLowTarget){
-                arm.setTargetPosition(lowTarget);
-                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                arm.setPower(0.5);
-            }
+            lastRow = row;
 
-            prevhighTarget = highTarget;
-            prevLowTarget = lowTarget;
+
+
+
 
 
 
@@ -318,6 +408,12 @@ public class Blue_Tele extends Base{
             telemetry.addData("BRIGHT", bRightMotor.retMotorEx().getVelocity());
 
             telemetry.addData("BLEFT", bLeftMotor.retMotorEx().getVelocity());
+            telemetry.addData("Arm", arm.getCurrentPosition());
+            telemetry.addData("Arm 2", arm2.getCurrentPosition());
+            telemetry.addData("Pivot", pivot.getPosition());
+            telemetry.addData("Row", row);
+            telemetry.addData("Drone Angle: ", droneAngle.getPosition());
+            telemetry.addData("Distance: ", distance_sensor_left.getDistance(DistanceUnit.CM));
 
             telemetry.update();
         }

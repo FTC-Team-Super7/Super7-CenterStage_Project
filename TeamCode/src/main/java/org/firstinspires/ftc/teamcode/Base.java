@@ -36,11 +36,14 @@ public abstract class Base extends LinearOpMode {
     Motor hanger;
 
     public DcMotorEx arm;
+    public DcMotorEx arm2;
 
     CRServo launcher;
     Servo pivot;
     Servo leftClaw;
     Servo rightClaw;
+
+    Servo droneAngle;
 
     DistanceSensor distance_sensor_right;
     DistanceSensor distance_sensor_left;
@@ -55,7 +58,7 @@ public abstract class Base extends LinearOpMode {
     public double BOX_INIT_POS = 0.4, BOX_INTAKE_POS = 0.65, BOX_RETRACT_POS = 0.5, BOX_MID_POS = 0.45;
     public double LAUNCHER_INIT_POS = 0, LAUNCHER_SHOOT_POS = 0.5;
 
-    public double LEFT_CLAW_OPEN = 0.48, LEFT_CLAW_CLOSE = 0.07, RIGHT_CLAW_OPEN = 0, RIGHT_CLAW_CLOSE = 0.8;
+    public double LEFT_CLAW_OPEN = 0.48, LEFT_CLAW_CLOSE = 0.07, RIGHT_CLAW_OPEN = 0, RIGHT_CLAW_CLOSE = 0.29;
 
 
 
@@ -89,6 +92,8 @@ public abstract class Base extends LinearOpMode {
          fRightMotor = new Motor(hardwareMap, "fRight", false);
          hanger = new Motor(hardwareMap, "hanger", false);
          arm = hardwareMap.get(DcMotorEx.class, "arm");
+         arm2 = hardwareMap.get(DcMotorEx.class, "arm2");
+         droneAngle = hardwareMap.get(Servo.class, "angle");
 
 
 
@@ -96,7 +101,10 @@ public abstract class Base extends LinearOpMode {
          bRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
          fRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
          arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-         arm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+         arm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+         arm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+         arm2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         controller = new PIDController(0.02, 0, 0.001);
 
@@ -130,12 +138,12 @@ public abstract class Base extends LinearOpMode {
         pivot.setPosition(0.78);
         leftClaw.setPosition(LEFT_CLAW_CLOSE);
         rightClaw.setPosition(RIGHT_CLAW_CLOSE);
+        droneAngle.setPosition(0.45);
 
 
 
 
 
-        //Initialize IMU
 
 
 
@@ -263,12 +271,14 @@ public abstract class Base extends LinearOpMode {
             double turnD,
             double timeout) {
         ElapsedTime time = new ElapsedTime();
+        ElapsedTime armTimer = new ElapsedTime();
         resetCache();
         dt.updatePosition();
         double xDiff = Integer.MAX_VALUE, yDiff = Integer.MAX_VALUE, angleDiff = Integer.MAX_VALUE, prevTime = 0, prevXDiff = 0, prevYDiff = 0, prevAngleDiff = 0, splineHeading = 0, maxSpeed = 1;
         double finalSplineHeading = Angle.normalize(Math.toDegrees(Math.atan2(wp.get(wp.size() - 1).yP, wp.get(wp.size() - 1).xP)));
         int pt = 0;
         time.reset();
+        armTimer.reset();
         while ((pt < wp.size() - 1
                 || (Math.abs(dt.getX() - wp.get(wp.size() - 1).xP) > error
                 || Math.abs(dt.getY() - wp.get(wp.size() - 1).yP) > error
@@ -281,6 +291,7 @@ public abstract class Base extends LinearOpMode {
                 && time.milliseconds() < timeout) {
             dt.updatePosition();
             resetCache();
+
             double x = dt.getX();
             double y = dt.getY();
             double theta = getAngle();
@@ -469,6 +480,12 @@ public abstract class Base extends LinearOpMode {
         arm.setPower(0.6);
     }
 
+    public void moveArm(int target, double speed){
+        arm.setTargetPosition(target);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(speed);
+    }
+
 
 
 
@@ -509,6 +526,43 @@ public abstract class Base extends LinearOpMode {
         bLeftMotor.setPower(backLeftPower * speedCap);
         fRightMotor.setPower(frontRightPower * speedCap);
         bRightMotor.setPower(backRightPower * speedCap);
+    }
+
+    public void armPurplePixel(){
+        pivot.setPosition(0.6);
+        arm.setTargetPosition(0);
+        arm2.setTargetPosition(0);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.8);
+        arm2.setPower(0.8);
+    }
+
+    public void armStackPick(){
+        arm.setTargetPosition(arm.getCurrentPosition() + 150);
+        arm2.setTargetPosition(arm2.getCurrentPosition() + 150);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.6);
+        arm2.setPower(0.6);
+    }
+
+    public void initArmDepo(){
+        arm.setTargetPosition(3150);
+        arm2.setTargetPosition(3150);
+
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.9);
+        arm2.setPower(0.9);
+        pivot.setPosition(0.18);
+    }
+
+    public void zeroArm(){
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        arm2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void driveFieldCentricAuto(double drive, double strafe, double angle){
