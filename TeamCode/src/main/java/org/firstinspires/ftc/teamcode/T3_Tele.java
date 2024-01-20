@@ -14,9 +14,9 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
-@TeleOp(name="Blue Tele")
+@TeleOp(name="T3 Tele")
 
-public class Blue_Tele extends Base{
+public class T3_Tele extends Base{
     private PIDController controller;
 
     public static double p =0.02, i=0, d=0.001;
@@ -36,8 +36,8 @@ public class Blue_Tele extends Base{
         initHardware(this);
         int highTarget = 2745;
         int prevhighTarget = 2745;
-        int [] armHeights = {138, 3070, 2970, 2250};
-        double [] pivots = {0.55, 0.19, 0.21, 0.34};
+        int [] armHeights = {138, 3070, 2970, 2450};
+        double [] pivots = {0.55, 0.19, 0.21, 0.29};
         //2745, 0.24
         int row = 3;
         int lastRow = 3;
@@ -71,6 +71,9 @@ public class Blue_Tele extends Base{
         boolean incPosLastOne = false, incPosCurrOne = false;
         boolean decPosLastOne = false, decPosCurrOne = false;
         boolean moveDownLast = false, moveDownCurr = false;
+        boolean adjustUpLast = false, adjustUpCurr = false;
+        boolean adjustDownLast = false, adjustDownCurr = false;
+
 
         boolean clawDown = false;
         boolean oneSet = true;
@@ -111,7 +114,7 @@ public class Blue_Tele extends Base{
                     arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     arm.setPower(0.8);
                     arm2.setPower(0.8);
-                    pivot.setPosition(0.65);
+                    pivot.setPosition(0.69);
                     armState = "rest";
                 }else{
                     movePivot = true;
@@ -161,7 +164,8 @@ public class Blue_Tele extends Base{
             if(planeAngCurr && !planeAngLast){
                 angleToggle = !angleToggle;
                 if(angleToggle){
-                    droneAngle.setPosition(0.3);
+                    droneAngle.setPosition(0.16); //This is the value you change,
+                                                  //Increasing will angle down, decreasing will angle up
                 }else{
                     droneAngle.setPosition(0.45);
                 }
@@ -215,16 +219,16 @@ public class Blue_Tele extends Base{
 //
 //
 //
-//            if(gamepad1.right_trigger > 0.05){
-//                powerCap = 0.5;
-//            }else {
-//                powerCap = 1;
-//            }
+            if(gamepad1.right_trigger > 0.05){
+                powerCap = 0.5;
+            }else {
+                powerCap = 1;
+            }
 
             double drive = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double strafe = gamepad1.right_stick_x; // Counteract imperfect strafing
             double turn = gamepad1.left_stick_x;
-            driveFieldCentric(drive, strafe, turn, powerCap, -90);
+            driveFieldCentric(drive, strafe, turn, powerCap, 90);
             //int armPos = arm.encoderReading();
 
             if(gamepad2.right_trigger > 0.05){
@@ -242,6 +246,8 @@ public class Blue_Tele extends Base{
             }else{
                 launcher.setPower(0);
             }
+
+
 
 //            if(gamepad2.a){
 //                arm.setPower(1);
@@ -315,16 +321,29 @@ public class Blue_Tele extends Base{
                 }
             }
 
-            if(gamepad1.a){
-                leftClaw.setPosition(LEFT_CLAW_CLOSE);
-                arm.setTargetPosition(400);
-                arm2.setTargetPosition(400);
+            adjustDownLast = adjustDownCurr;
+            adjustDownCurr = gamepad2.b;
+            if(!adjustDownLast && adjustDownCurr){
+                arm.setTargetPosition(arm.getCurrentPosition() +  100);
+                arm2.setTargetPosition(arm.getCurrentPosition() + 100);
                 arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                arm.setPower(1);
-                arm2.setPower(1);
-                pivot.setPosition(0.1);
+                arm.setPower(0.8);
+                arm2.setPower(0.8);
             }
+
+            adjustUpLast = adjustUpCurr;
+            adjustUpCurr = gamepad2.a;
+            if(!adjustUpLast && adjustUpCurr){
+                arm.setTargetPosition(arm.getCurrentPosition() -  100);
+                arm2.setTargetPosition(arm.getCurrentPosition() - 100);
+                arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm.setPower(0.8);
+                arm2.setPower(0.8);
+            }
+
+
 
             if(gamepad2.right_stick_button){
                 pivot.setPosition(pivot.getPosition() + 0.02);
@@ -336,30 +355,30 @@ public class Blue_Tele extends Base{
 
 
 
-//            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){ //Automatic Pickup of Pixel
-//                grabRight();
-//                grabbedRight = true;
-//                open = false;
+            if(sensePixelRight()  && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){ //Automatic Pickup of Pixel
+                grabRight();
+                grabbedRight = true;
+                open = false;
+
+
+
+            }
+
+            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){
+                grabLeft();
+                grabbedLeft = true;
+                open = false;
+
+
+
+            }
 //
-//
-//
-//            }
-//
-//            if(sensePixelLeft() && autoShutOff.milliseconds() > 1000 && !armState.equals("up")){
-//                grabLeft();
-//                grabbedLeft = true;
-//                open = false;
-//
-//
-//
-//            }
-////
-//            autoPickLast = autoPickCurr;
-//            autoPickCurr = leftClaw.getPosition() == LEFT_CLAW_CLOSE && rightClaw.getPosition() == RIGHT_CLAW_CLOSE;
-//            if(autoPickCurr && !autoPickLast){
-//                pickUp.reset();
-//                transfer = true;
-//            }
+            autoPickLast = autoPickCurr;
+            autoPickCurr = leftClaw.getPosition() == LEFT_CLAW_CLOSE && rightClaw.getPosition() == RIGHT_CLAW_CLOSE;
+            if(autoPickCurr && !autoPickLast){
+                pickUp.reset();
+                transfer = true;
+            }
 
             if(pickUp.milliseconds() > 200 && transfer){
                 pivot.setPosition(0.65);
