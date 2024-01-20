@@ -135,7 +135,7 @@ public abstract class Base extends LinearOpMode {
 
         //Initalization Movements
 
-        pivot.setPosition(0.78);
+        pivot.setPosition(0.82);
         leftClaw.setPosition(LEFT_CLAW_CLOSE);
         rightClaw.setPosition(RIGHT_CLAW_CLOSE);
         droneAngle.setPosition(0.45);
@@ -555,7 +555,18 @@ public abstract class Base extends LinearOpMode {
         arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setPower(0.9);
         arm2.setPower(0.9);
-        pivot.setPosition(0.18);
+        pivot.setPosition(0.165);
+    }
+
+    public void initArmDepoBlue(){
+        arm.setTargetPosition(3150);
+        arm2.setTargetPosition(3150);
+
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setPower(0.9);
+        arm2.setPower(0.9);
+        pivot.setPosition(0.16);
     }
 
     public void zeroArm(){

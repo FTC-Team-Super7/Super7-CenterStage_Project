@@ -2,15 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Size;
 
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.VISION.RedPropThreshold;
 import org.firstinspires.ftc.vision.VisionPortal;
 
@@ -18,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @Autonomous(name="T3_Red_Auto")
-public class T3_AutoTest extends Base {
+public class T3_Auto_Red extends Base {
 
     @Override
     public void runOpMode() throws InterruptedException {

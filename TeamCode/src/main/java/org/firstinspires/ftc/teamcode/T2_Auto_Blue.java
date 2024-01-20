@@ -4,6 +4,7 @@ import android.util.Size;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.teamcode.VISION.BluePropThreshold;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 @Autonomous(name="Blue Auto")
+@Disabled
 public class T2_Auto_Blue extends Base {
     int value = 0;
     @Override
