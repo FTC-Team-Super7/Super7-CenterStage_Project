@@ -11,82 +11,7 @@ import java.util.Collections;
 
 
 public class PathGenerator {
-
-    // todo: replace prints in favor of logs.
-    public static ArrayList<Point> interpSplinePath(ArrayList<Point> pts, Point curLoc) {
-
-        boolean incX = true, none = true;
-        ArrayList<Point> wp = new ArrayList<>(), cur = new ArrayList<>();
-        cur.add(curLoc);
-        Point prev = curLoc;
-        if (pts.size() == 1) {
-            wp.add(pts.get(0));
-            return wp;
-        }
-
-        for (int i = 0; i < pts.size(); i++) {
-            if (!none) {
-                if (incX) {
-                    // test for conflicting
-                    if (!(pts.get(i).xP > prev.xP)) {
-                        wp.addAll(generateSplinePath(cur, 1));
-                        cur.clear();
-                        none = true;
-                        incX = false;
-                        cur.add(prev);
-                    } else {
-                        cur.add(pts.get(i));
-                    }
-                } else {
-                    // test for conflicting
-                    if (!(pts.get(i).xP < prev.xP)) {
-                        ArrayList<Point> p = generateSplinePath(cur, 1);
-                        Collections.reverse(p);
-                        wp.addAll(p);
-                        cur.clear();
-                        none = true;
-                        incX = true;
-                        cur.add(prev);
-                    } else {
-                        cur.add(pts.get(i));
-                    }
-                }
-            }
-
-            if (none) {
-                cur.add(pts.get(i));
-                if (cur.get(0).xP < cur.get(1).xP) {
-                    incX = true;
-                    none = false;
-                } else if (cur.get(0).xP > cur.get(1).xP) {
-                    incX = false;
-                    none = false;
-                } else {
-                    wp.addAll(generateLinearSpline(cur));
-                    cur.clear();
-                    cur.add(pts.get(i));
-                }
-            }
-
-            prev = pts.get(i);
-        }
-
-        if (cur.size() == 1) {
-            wp.addAll(
-                    generateLinearSpline(
-                            new ArrayList<Point>(Arrays.asList(wp.get(wp.size() - 1), cur.get(0)))));
-        } else if (cur.size() > 1) {
-            ArrayList<Point> p = generateSplinePath(cur, 1);
-            if (!incX) {
-                Collections.reverse(p);
-            }
-            wp.addAll(p);
-        }
-
-        return wp;
-    }
-
-    // NOTE: To visualize splines use this (we use cubic splines as opposed to roadrunner's quintic
+    // NOTE: To visualize splines use this (we use cubic bezier splines as opposed to roadrunner's quintic
     // splines):
     // https://github.com/MrinallU/Cubic-Spline-Interpolator
     // Don't use/edit this unless you know what you are doing...
@@ -98,185 +23,93 @@ public class PathGenerator {
     // resource: helpful python visualizer
     // https://github.com/acmerobotics/road-runner/blob/master/doc/notebook/road-runner-lite.ipynb
     public PathGenerator() {}
-
-    /**
-     * @param p Array of points which the spline will interpolate
-     * @return A series of waypoints which a differential drive robot can follow.
-     */
-    private static ArrayList<Point> generateSplinePath(Point[] p, double step) {
-        int row = 0;
-        int solutionIndex = (p.length - 1) * 4;
-        Arrays.sort(p);
-        // initialize matrix
-        BigDecimal[][] m = new BigDecimal[(p.length - 1) * 4][(p.length - 1) * 4 + 1]; // rows
-        for (int i = 0; i < (p.length - 1) * 4; i++) {
-            for (int j = 0; j <= (p.length - 1) * 4; j++) {
-                m[i][j] = BigDecimal.ZERO; // fill with zeros
-            }
-        }
-
-        // n - 1 splines
-        for (int functionNr = 0; functionNr < p.length - 1; functionNr++, row++) {
-            Point p0 = p[functionNr], p1 = p[functionNr + 1];
-            m[row][functionNr * 4] =
-                    new BigDecimal(p0.xP, MathContext.DECIMAL64).pow(3, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 1] =
-                    new BigDecimal(p0.xP, MathContext.DECIMAL64).pow(2, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 2] = new BigDecimal(p0.xP, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 3] = new BigDecimal(1, MathContext.DECIMAL64);
-            m[row][solutionIndex] = new BigDecimal(p0.yP, MathContext.DECIMAL64);
-
-            ++row;
-
-            m[row][functionNr * 4] =
-                    new BigDecimal(p1.xP, MathContext.DECIMAL64).pow(3, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 1] =
-                    new BigDecimal(p1.xP, MathContext.DECIMAL64).pow(2, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 2] = new BigDecimal(p1.xP, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 3] = new BigDecimal(1, MathContext.DECIMAL64);
-            m[row][solutionIndex] = new BigDecimal(p1.yP, MathContext.DECIMAL64);
-        }
-
-        // first derivative
-        for (int functionNr = 0; functionNr < p.length - 2; functionNr++, row++) {
-            Point p1 = p[functionNr + 1];
-            m[row][functionNr * 4] =
-                    new BigDecimal(3, MathContext.DECIMAL64)
-                            .multiply(new BigDecimal(p1.xP).pow(2, MathContext.DECIMAL64));
-            m[row][functionNr * 4 + 1] =
-                    new BigDecimal(2, MathContext.DECIMAL64)
-                            .multiply(new BigDecimal(p1.xP), MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 2] = new BigDecimal(1, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 4] =
-                    new BigDecimal(-3).multiply(new BigDecimal(p1.xP).pow(2, MathContext.DECIMAL64));
-            m[row][functionNr * 4 + 5] =
-                    new BigDecimal(-2, MathContext.DECIMAL64)
-                            .multiply(new BigDecimal(p1.xP), MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 6] = new BigDecimal(-1, MathContext.DECIMAL64);
-        }
-
-        // second derivative
-        for (int functionNr = 0; functionNr < p.length - 2; functionNr++, row++) {
-            Point p1 = p[functionNr + 1];
-            m[row][functionNr * 4] =
-                    new BigDecimal(6, MathContext.DECIMAL64)
-                            .multiply(new BigDecimal(p1.xP, MathContext.DECIMAL64), MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 1] = new BigDecimal(2, MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 4] =
-                    new BigDecimal(-6, MathContext.DECIMAL64)
-                            .multiply(new BigDecimal(p1.xP, MathContext.DECIMAL64), MathContext.DECIMAL64);
-            m[row][functionNr * 4 + 5] = new BigDecimal(-2, MathContext.DECIMAL64);
-        }
-
-        // check these calculations later
-        m[row][0] =
-                new BigDecimal(6, MathContext.DECIMAL64)
-                        .multiply(new BigDecimal(p[0].xP, MathContext.DECIMAL64), MathContext.DECIMAL64);
-        m[row++][1] = new BigDecimal(2, MathContext.DECIMAL64);
-        m[row][solutionIndex - 4] =
-                new BigDecimal(6, MathContext.DECIMAL64)
-                        .multiply(
-                                new BigDecimal(p[p.length - 1].xP, MathContext.DECIMAL64), MathContext.DECIMAL64);
-        m[row][solutionIndex - 4 + 1] = new BigDecimal(2, MathContext.DECIMAL64);
-
-        BigDecimal[][] reducedRowEchelonForm = rref(m);
-        BigDecimal[] coefficients = new BigDecimal[reducedRowEchelonForm.length];
-        for (int i = 0; i < reducedRowEchelonForm.length; i++) {
-            coefficients[i] = reducedRowEchelonForm[i][reducedRowEchelonForm[i].length - 1];
-        }
-
-        ArrayList<Point> path = new ArrayList<>();
-        for (int i = 0; i < coefficients.length; i += 4) {
-            for (double j = p[i / 4].xP; j <= p[(i / 4) + 1].xP; j += step) {
-                BigDecimal a =
-                        coefficients[i].multiply(BigDecimal.valueOf(j).pow(3, MathContext.DECIMAL64));
-                BigDecimal b =
-                        coefficients[i + 1].multiply(BigDecimal.valueOf(j).pow(2, MathContext.DECIMAL64));
-                BigDecimal c = coefficients[i + 2].multiply(BigDecimal.valueOf(j));
-                BigDecimal d = coefficients[i + 3];
-                Point pt = new Point(j, a.add(b).add(c).add(d).doubleValue());
-                pt.ang = p[i/4].ang;
-                pt.spline = p[i/4].spline;
-                pt.invertSpline = p[i/4].invertSpline;
-                pt.speed = p[i/4].speed;
-                path.add(pt);
-            }
-
-            double j = p[(i / 4) + 1].xP;
-            BigDecimal a =
-                    coefficients[i].multiply(BigDecimal.valueOf(j).pow(3, MathContext.DECIMAL64));
-            BigDecimal b =
-                    coefficients[i + 1].multiply(BigDecimal.valueOf(j).pow(2, MathContext.DECIMAL64));
-            BigDecimal c = coefficients[i + 2].multiply(BigDecimal.valueOf(j));
-            BigDecimal d = coefficients[i + 3];
-            Point pt = new Point(j, a.add(b).add(c).add(d).doubleValue());
-            pt.ang = p[(i / 4) + 1].ang;
-            pt.spline = p[(i / 4) + 1].spline;
-            pt.invertSpline = p[(i / 4) + 1].invertSpline;
-            pt.speed = p[(i / 4) + 1].speed;
-
-            path.add(pt);
-        }
-
-        return path;
-    }
-
-    public static ArrayList<Point> generateSplinePath(ArrayList<Point> l, double step) {
-        Point[] p = new Point[l.size()];
-        for (int i = 0; i < l.size(); i++) {
-            p[i] = l.get(i);
-        }
-        return generateSplinePath(p, step);
-    }
-
-    public static ArrayList<Point> generateLinearSpline(ArrayList<Point> pts) {
+    
+    
+    public static ArrayList<Point> interpSplinePath(ArrayList<Point> pts, Point curLoc) {
         ArrayList<Point> wp = new ArrayList<>();
+        ArrayList<Double> slopes = new ArrayList<>();
+        pts.add(0, curLoc); // add current point to the front
+
         for (int i = 0; i < pts.size() - 1; i++) {
-            double x1 = pts.get(i).xP, x2 = pts.get(i + 1).xP, y1 = pts.get(i).yP, y2 = pts.get(i + 1).yP;
-            double deltaX = (x2 - x1) / 10;
-            double deltaY = (y2 - y1) / 10;
-            for (int j = 0; j <= 10; j++) {
-                double x = x1 + j * deltaX;
-                double y = y1 + j * deltaY;
-                wp.add(new Point(x, y, pts.get(i).ang, pts.get(i).spline, pts.get(i).invertSpline,  pts.get(i).speed));
+            if (pts.get(i + 1).xP == pts.get(i).xP) {
+                slopes.add(-1.0);
+            } else {
+                slopes.add(((pts.get(i + 1).yP - pts.get(i).yP) / (pts.get(i).xP - pts.get(i + 1).xP)));
+            }
+        }
+
+        if (pts.get(pts.size() - 1).xP == pts.get(pts.size() - 2).xP) {
+            slopes.add(-1.0);
+        } else {
+            slopes.add((pts.get(pts.size() - 1).yP - pts.get(pts.size() - 2).yP) / (pts.get(pts.size() - 2).xP - pts.get(pts.size() - 1).xP));
+        }
+
+        Point prev = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        for (int i = 0; i < pts.size() - 1; i++) {
+            Point p1, p2;
+            p1 = pts.get(i);
+            p2 = pts.get(i + 1);
+
+            if (p1.xP == p2.xP) {
+                double inc = (p2.yP - p1.yP) / 100;
+                if (p1.yP <= p2.yP) {
+                    for (double j = p1.yP; j <= p2.yP; j += inc) {
+                        wp.add(new Point(p1.xP, j));
+                    }
+                } else {
+                    for (double j = p1.yP; j >= p2.yP; j += inc) {
+                        wp.add(new Point(p1.xP, j));
+                    }
+                }
+            } else {
+                double slope1, slope2, x1, x2;
+                if (prev.xP == Double.MAX_VALUE) {
+                    slope1 = slopes.get(i);
+                } else {
+                    slope1 = (pts.get(i).yP - prev.yP) / (prev.xP - pts.get(i).xP);
+                }
+
+                slope2 = slopes.get(i + 1);
+                if (i + 2 < pts.size()) {
+                    boolean pos1 = (pts.get(i + 1).xP - pts.get(i).xP) >= 0;
+                    boolean pos2 = (pts.get(i + 2).xP - pts.get(i + 1).xP) >= 0;
+
+                    if (pos2 != pos1) {
+                        slope2 = -slopes.get(i + 1);
+                    }
+                }
+
+                if (prev.xP == Double.MAX_VALUE) {
+                    x1 = ((p2.xP - p1.xP) / 4) + p1.xP;
+                } else {
+                    double mult;
+                    if (p1.xP - prev.xP > 0) {
+                        mult = 1;
+                    } else {
+                        mult = -1;
+                    }
+                    x1 = p1.xP + ((Math.abs(p2.xP - p1.xP) / 4) * mult);
+                }
+
+                x2 = (3 * ((p2.xP - p1.xP) / 4)) + p1.xP;
+                Point c0, c1, c2, c3;
+                c0 = new Point(p1.xP, p1.yP);
+                c1 = new Point(x1, (slope1 * (p1.xP - x1) + p1.yP));
+                c2 = new Point(x2, (slope2 * (p2.xP - x2) + p2.yP));
+                c3 = new Point(p2.xP, p2.yP);
+                prev = c2;
+
+                // increase increment for less weigh points!
+                for (double t = 0; t <= 1; t += 0.001) {
+                    wp.add(new Point((1 - t) * ((1 - t) * ((1 - t) * c0.xP + t * c1.xP) + t * ((1 - t) * c1.xP + t * c2.xP)) + t * ((1 - t) * ((1 - t) * c1.xP + t * c2.xP) + t * ((1 - t) * c2.xP + t * c3.xP)),
+                            ((1 - t) * ((1 - t) * ((1 - t) * c0.yP + t * c1.yP) + t * ((1 - t) * c1.yP + t * c2.yP)) + t * ((1 - t) * ((1 - t) * c1.yP + t * c2.yP) + t * ((1 - t) * c2.yP + t * c3.yP))),  p2.ang, p2.spline, p2.invertSpline, p2.speed));
+                }
             }
         }
         return wp;
     }
 
-    public static BigDecimal[][] rref(BigDecimal[][] mat) {
-        int lead = 0;
-        for (int r = 0; r < mat.length; r++) {
-            int i = r;
-            while (mat[i][lead].compareTo(BigDecimal.ZERO) == 0) {
-                i++;
-                if (mat.length == i) {
-                    i = r;
-                    lead++;
-                }
-            }
 
-            BigDecimal[] tmp = mat[i];
-            mat[i] = mat[r];
-            mat[r] = tmp;
-
-            BigDecimal val = mat[r][lead];
-            for (int j = 0; j < mat[0].length; j++) {
-                mat[r][j] = mat[r][j].divide(val, MathContext.DECIMAL64);
-            }
-
-            for (i = 0; i < mat.length; i++) {
-                if (i == r) continue;
-                val = mat[i][lead];
-                for (int j = 0; j < mat[0].length; j++) {
-                    mat[i][j] =
-                            mat[i][j].subtract(
-                                    val.multiply(mat[r][j], MathContext.DECIMAL64), MathContext.DECIMAL64);
-                }
-            }
-            lead++;
-        }
-        return mat;
-    }
 }
 
