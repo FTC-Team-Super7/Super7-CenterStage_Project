@@ -52,7 +52,7 @@ public class PathGenerator {
             p2 = pts.get(i + 1);
 
             if (p1.xP == p2.xP) {
-                double inc = (p2.yP - p1.yP) / 100;
+                double inc = (p2.yP - p1.yP) / 40;
                 if (p1.yP <= p2.yP) {
                     for (double j = p1.yP; j <= p2.yP; j += inc) {
                         wp.add(new Point(p1.xP, j));
@@ -101,7 +101,7 @@ public class PathGenerator {
                 prev = c2;
 
                 // increase increment for less weigh points!
-                for (double t = 0; t <= 1; t += 0.001) {
+                for (double t = 0; t <= 1; t += 0.025) {
                     wp.add(new Point((1 - t) * ((1 - t) * ((1 - t) * c0.xP + t * c1.xP) + t * ((1 - t) * c1.xP + t * c2.xP)) + t * ((1 - t) * ((1 - t) * c1.xP + t * c2.xP) + t * ((1 - t) * c2.xP + t * c3.xP)),
                             ((1 - t) * ((1 - t) * ((1 - t) * c0.yP + t * c1.yP) + t * ((1 - t) * c1.yP + t * c2.yP)) + t * ((1 - t) * ((1 - t) * c1.yP + t * c2.yP) + t * ((1 - t) * c2.yP + t * c3.yP))),  p2.ang, p2.spline, p2.invertSpline, p2.speed));
                 }
